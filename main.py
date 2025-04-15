@@ -3,7 +3,7 @@ import os
 import uuid
 from confluent_kafka import Consumer, KafkaError, KafkaException
 from google.protobuf.message import DecodeError
-from evm import dex_block_message_pb2
+from evm import token_block_message_pb2
 import binascii
 import base58
 import json
@@ -25,28 +25,46 @@ conf = {
 }
 
 consumer = Consumer(conf)
-topic = 'bsc.dextrades.proto'
+topic = 'bsc.tokens.proto'
 consumer.subscribe([topic])
+
+wallets = [
+    '0xf977814e90da44bfa03b6295a0616a897441acec', 
+    '0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8', 
+    '0x5a52e96bacdabb82fd05763e25335261b270efcb',
+    '0x3c783c21a0383057d128bae431894a5c19f9cf06',
+    '0xdccf3b77da55107280bd850ea519df3705d1a75a',
+    '0x8894e0a0c962cb723c1976a4421c95949be2d4e3',
+    '0x515b72ed8a97f42c568d6a143232775018f133c8',
+    '0xbd612a3f30dca67bf60a39fd0d35e39b7ab80774',
+    '0x01c952174c24e1210d26961d456a77a39e1f0bb0',
+    '0x29bdfbf7d27462a2d115748ace2bd71a2646946c',
+    '0x73f5ebe90f27b46ea12e5795d16c4b408b19cc6f',
+    '0x161ba15a5f335c9f06bb5bbb0a9ce14076fbb645',
+    '0x1fbe2acee135d991592f167ac371f3dd893a508b',
+    '0xeb2d2f1b8c558a40207669291fda468e50c8a0bb',
+    '0xa180fe01b906a1be37be6c534a3300785b20d947'
+    ]
 
 def process_message(message):
     try:
         buffer = message.value()
-        parsed_message = dex_block_message_pb2.DexBlockMessage()
+        parsed_message = token_block_message_pb2.TokenBlockMessage()
         parsed_message.ParseFromString(buffer)
-        trades = parsed_message.Trades
+        # print_protobuf_message(parsed_message)
+        transfers = parsed_message.Transfers
 
-        for trade in trades:
-            dex = trade.Dex
-            address = dex.SmartContract
-            address = convert_bytes(address)
-            # print(address)
+        for transfer in transfers:
+            sender = '0x' + convert_bytes(transfer.Sender)
+            receiver = '0x' + convert_bytes(transfer.Receiver)
+            amount = convert_bytes(transfer.Amount)
+            # amount = transfer.Amount
 
-            if address == "5c952063c7fc8610ffdb798152d69f0b9550762b":
-                print("\nNew DexBlockMessage received:\n")
-                print_protobuf_message(trade, encoding='base58')
-                # print(address)
-            else:
-                print("Trade in another DEX")
+            if sender in wallets:
+                print(receiver, "has withdrawn", amount, "from", sender)
+            elif receiver in wallets:
+                print(sender, "has deposited", amount, "to", receiver)
+
     except DecodeError as err:
         print(f"Protobuf decoding error: {err}")
     except Exception as err:

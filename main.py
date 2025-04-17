@@ -1,4 +1,3 @@
-# This code fetches Ethereum trades in real-time from Bitquery Kafka Streams in Protobuf format
 import os
 import uuid
 from confluent_kafka import Consumer, KafkaError, KafkaException
@@ -8,7 +7,6 @@ import binascii
 import base58
 import json
 from helpers.convert_bytes import convert_bytes 
-from helpers.print_protobuf_message import print_protobuf_message
 from constants import *
 group_id_suffix = uuid.uuid4().hex
 
@@ -51,7 +49,6 @@ def process_message(message):
         buffer = message.value()
         parsed_message = token_block_message_pb2.TokenBlockMessage()
         parsed_message.ParseFromString(buffer)
-        # print_protobuf_message(parsed_message)
         transfers = parsed_message.Transfers
 
         for transfer in transfers:

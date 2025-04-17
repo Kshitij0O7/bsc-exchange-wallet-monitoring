@@ -28,7 +28,7 @@ consumer = Consumer(conf)
 topic = 'bsc.tokens.proto'
 consumer.subscribe([topic])
 
-wallets = [
+wallets = {
     '0xf977814e90da44bfa03b6295a0616a897441acec', 
     '0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8', 
     '0x5a52e96bacdabb82fd05763e25335261b270efcb',
@@ -44,7 +44,7 @@ wallets = [
     '0x1fbe2acee135d991592f167ac371f3dd893a508b',
     '0xeb2d2f1b8c558a40207669291fda468e50c8a0bb',
     '0xa180fe01b906a1be37be6c534a3300785b20d947'
-    ]
+}
 
 def process_message(message):
     try:
@@ -57,13 +57,14 @@ def process_message(message):
         for transfer in transfers:
             sender = '0x' + convert_bytes(transfer.Sender)
             receiver = '0x' + convert_bytes(transfer.Receiver)
-            amount = convert_bytes(transfer.Amount)
-            # amount = transfer.Amount
+            amount = int.from_bytes(transfer.Amount, byteorder='big')/10e18
+            currency = transfer.Currency
+            symbol = currency.Symbol
 
             if sender in wallets:
-                print(receiver, "has withdrawn", amount, "from", sender)
+                print(receiver, "has withdrawn", amount, symbol, "from the", sender, "Exchange Wallet")
             elif receiver in wallets:
-                print(sender, "has deposited", amount, "to", receiver)
+                print(sender, "has deposited", amount, symbol, "to the", receiver, "Exchange Wallet")
 
     except DecodeError as err:
         print(f"Protobuf decoding error: {err}")

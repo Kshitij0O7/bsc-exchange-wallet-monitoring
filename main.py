@@ -7,7 +7,6 @@ import binascii
 import base58
 import json
 from helpers.convert_bytes import convert_bytes 
-from constants import *
 group_id_suffix = uuid.uuid4().hex
 
 conf = {
